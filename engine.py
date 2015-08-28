@@ -180,9 +180,30 @@ def query_case3(query_split):
 					i = i + 1
 				f.close()
 				list1.append(list2)
-	print list1
-	print final_output
+	#print list1
+	#print final_output
+	output = ""
+	for temp in final_output:
+		if temp != final_output[len(final_output)-1]:
+			output = output + temp + ','
+		else:
+			output = output + temp
+	print output
 
+	i = 0
+	while i < len(list1[0]):
+		row_output = ""
+		j = 0
+		while j < len(list1):
+			if j != len(list1)-1:
+				row_output = row_output + str(list1[j][i]) + ","
+			else:
+				row_output = row_output + str(list1[j][i])
+			j = j + 1
+		print row_output
+		i = i + 1
+
+		
 def parser(query):
     if query_split[0] not in select_cases:
         print "Wrong Query"
