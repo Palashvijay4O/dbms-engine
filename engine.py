@@ -8,6 +8,7 @@ query = sys.argv[1:]
 select_cases = ['Select', 'select', 'SELECT']
 from_cases = ['FROM', 'From', 'from']
 where_cases = ['WHERE', 'where', 'Where']
+distinct_cases = ['DISTINCT', 'distinct', 'Distinct']
 #print query
 
 query_split = query[0].split(' ')
@@ -203,7 +204,78 @@ def query_case3(query_split):
 		print row_output
 		i = i + 1
 
-		
+def query_case4(query_split):
+	tables = query_split[4].split(',')
+	target = open('metadata.txt')
+	target_split = target.read().splitlines()
+	output = ""
+	columns = defaultdict(list)
+	for table in tables:
+		index = target_split.index(table)
+		index = index + 1
+		while target_split[index] != '<end_table>':
+			if target_split[index+1] == '<end_table>':
+				output += table + '.' + target_split[index]
+			elif target_split[index+1] != '<end_table>':
+				output += table + '.' + target_split[index] + ','
+			columns[table].append(target_split[index])
+			index = index + 1
+	#print output
+	target.close()
+	#print columns
+	output_columns = query_split[2].split(',')
+	list1 = []
+	final_output = []
+	for x in output_columns:
+		temp_values_list = columns.values()
+		#print temp_values_list
+		for temp in temp_values_list:
+			if x in temp:
+				final_output.append(columns.keys()[columns.values().index(temp)] + "." + x)
+				list2 = []
+				f = open(columns.keys()[columns.values().index(temp)] + '.csv', 'rt')
+				reader = csv.reader(f)
+				row_list = []
+				for row in reader:
+					row_list.append(row)
+				row_list = [ map(int,y) for y in row_list ]
+				#print columns.keys()[columns.values().index(temp)]
+				#print get_column_index(x, 'table1')
+				index = get_column_index(x,columns.keys()[columns.values().index(temp)])
+				#print index
+				i = 0
+				length = len(row_list)
+				while i < length:
+					list2.append(row_list[i][index])
+					i = i + 1
+				f.close()
+				list1.append(list2)
+	#print list1
+	#print final_output
+	output = ""
+	for temp in final_output:
+		if temp != final_output[len(final_output)-1]:
+			output = output + temp + ','
+		else:
+			output = output + temp
+	print output
+
+	unique_data = [list(k) for k in set(tuple(k) for k in list1)]
+	#print unique_data
+
+	i = 0
+	while i < len(unique_data[0]):
+		row_output = ""
+		j = 0
+		while j < len(unique_data):
+			if j != len(unique_data)-1:
+				row_output = row_output + str(unique_data[j][i]) + ","
+			else:
+				row_output = row_output + str(unique_data[j][i])
+			j = j + 1
+		print row_output
+		i = i + 1
+
 def parser(query):
     if query_split[0] not in select_cases:
         print "Wrong Query"
@@ -213,6 +285,9 @@ def parser(query):
           if query_split[2] in from_cases:
             if len(query_split) == 4:
               query_case1(query_split)
+
+        elif query_split[1] in distinct_cases:
+        	query_case4(query_split)
 
         elif query_split[1].startswith("max"):
 					query_case2_max(query_split)
@@ -228,6 +303,8 @@ def parser(query):
 
         elif len(query_split[3].split(',')) >= 1:
         	query_case3(query_split)
+
+        
 
 
 parser(query)
